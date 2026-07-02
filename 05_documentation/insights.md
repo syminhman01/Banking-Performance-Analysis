@@ -1,7 +1,6 @@
 
 ## 5. File `insights.md`
 
-File này m viết insight dựa trên dashboard của m. Tạm thời dùng bản an toàn này, sau đó m thay số liệu thật vào.
 
 ```md
 # Key Insights
