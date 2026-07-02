@@ -1,0 +1,55 @@
+USE BK14
+CREATE OR ALTER VIEW VW_FactNewCustomer
+AS
+WITH KhachHangDauTien AS (
+    -- Bước 1: Tìm ngày mở tài khoản đầu tiên của mỗi khách hàng
+    SELECT 
+        MA_KHACHHANG,
+        MIN(NGAY_MO_TAIKHOAN_THANHTOAN) AS NGAY_DAU_TIEN
+    FROM TBL_KHACH_HANG
+    GROUP BY MA_KHACHHANG
+)
+-- Bước 2: Group theo tháng của ngày đầu tiên đó để đếm số khách hàng mới
+SELECT 
+    DATEFROMPARTS(YEAR(NGAY_DAU_TIEN), MONTH(NGAY_DAU_TIEN), 1) AS THANGMOTK,
+    COUNT(MA_KHACHHANG) AS SOKHACHHANG -- Không cần DISTINCT nữa vì mỗi KH chỉ có 1 dòng duy nhất
+FROM KhachHangDauTien
+GROUP BY DATEFROMPARTS(YEAR(NGAY_DAU_TIEN), MONTH(NGAY_DAU_TIEN), 1)
+-- khách hàng theo khu vực
+CREATE OR ALTER VIEW VW_FactCustomerRegion
+AS
+SELECT cn.MA_KHUVUC,
+       COUNT(*) AS SOKHACHHANG
+FROM TBL_KHACH_HANG kh
+INNER JOIN TBL_CHINHANH cn ON kh.MA_CHINHANH = cn.MA_CHINHANH
+GROUP BY cn.MA_KHUVUC
+
+--
+SELECT * FROM VW_TIETKIEM_THANG
+SELECT * FROM TBL_KHACH_HANG
+
+-- Cơ cấu khách hàng là cá nhân theo giới tính và nhóm tuổi
+CREATE OR ALTER VIEW VW_FactCustomerByGenderAndAgeGroup
+AS
+SELECT GIOI_TINH,
+       CASE 
+       WHEN DATEDIFF(DAY,NGAYCAP_CMND,GETDATE())/360 <20 THEN N'Dưới 20 tuổi'
+       WHEN DATEDIFF(DAY,NGAYCAP_CMND,GETDATE())/360 <40 THEN N'Từ 20 đến dưới 40 tuổi'
+       ELSE N'Từ 40 tuổi trở lên'
+       END AS NHOMTUOI,
+       COUNT(*) AS SOKHACHHANG
+FROM TBL_KHACH_HANG
+WHERE LOAI_KHACHHANG = 'Cá nhân'
+GROUP BY GIOI_TINH,
+       CASE 
+       WHEN DATEDIFF(DAY,NGAYCAP_CMND,GETDATE())/360 <20 THEN N'Dưới 20 tuổi'
+       WHEN DATEDIFF(DAY,NGAYCAP_CMND,GETDATE())/360 <40 THEN N'Từ 20 đến dưới 40 tuổi'
+       ELSE N'Từ 40 tuổi trở lên'
+       END 
+
+-- Tiền gửi chưa tất toán
+SELECT SUM(SOTIEN_GUI)/1000000000
+FROM TBL_TIENGUI_TIETKIEM
+
+SELECT *
+FROM TBL_TIENGUI_TIETKIEM

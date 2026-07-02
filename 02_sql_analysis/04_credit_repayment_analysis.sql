@@ -1,0 +1,17 @@
+-- Kiểm tra số tiền giải ngân, dư nợ, gốc/ lãi đã trả, khoản vay quá hạn
+WITH s AS (
+    SELECT MA_HOPDONG_TINDUNG,
+           ISNULL(TRA_GOC,0) AS TONGGOC,
+           ISNULL(TRA_LAI,0) AS TONGLAI
+    FROM TBL_THUHOINO 
+)
+SELECT hd.SOTIEN_GIAINGAN,
+       ISNULL(hd.SOTIEN_GIAINGAN - s.TONGGOC,0) AS DU_NO,
+       s.TONGGOC,
+       s.TONGLAI,
+       CASE 
+           WHEN hd.NGAY_DAOHAN < DATEFROMPARTS(2024,12,31) AND  ISNULL(hd.SOTIEN_GIAINGAN - s.TONGGOC,0) > 0 THEN N'Quá hạn'
+           ELSE N'Chưa quá hạn'
+       END AS TINHTRANGKHOANVAY
+FROM s 
+INNER JOIN TBL_HOPDONG_TINDUNG hd ON s.MA_HOPDONG_TINDUNG =hd.MA_HOPDONG_TINDUNG
